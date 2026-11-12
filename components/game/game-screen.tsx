@@ -90,6 +90,7 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
   const [dialog, setDialog] = useState({ heading: `Hi! I'm ${level.name}`, line: level.intro })
   const [confirmReset, setConfirmReset] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [lastRegion, setLastRegion] = useState<string | null>(null)
 
   const regionToComponent = useMemo(
     () => Object.fromEntries(level.regions.map((r) => [r.id, r.componentId])),
@@ -107,6 +108,13 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
   const coloredCount = level.regions.filter((r) => fills[r.id]).length
   const total = level.regions.length
   const allColored = coloredCount === total
+
+  // Suggest the real-life color for the part the child last touched,
+  // or the first part still waiting for color.
+  const suggestionRegion = lastRegion ?? level.regions.find((r) => !fills[r.id])?.id ?? null
+  const suggestedHex = suggestionRegion ? level.suggestedColors[suggestionRegion] : undefined
+  const suggestion =
+    suggestionRegion && suggestedHex ? { hex: suggestedHex, partLabel: labels[suggestionRegion] } : null
 
   // Persist artwork to localStorage whenever the fills change.
   useEffect(() => {
@@ -130,6 +138,7 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
 
   const handleRegion = (regionId: string) => {
     const componentId = regionToComponent[regionId]
+    setLastRegion(regionId)
     if (tool === 'explore') {
       sfx.click()
       explain(componentId, true)
@@ -186,6 +195,7 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
           <div className="mx-auto w-full max-w-3xl rounded-[2rem] bg-card p-5 ring-4 ring-border md:p-8">
             <Quiz
               level={level}
+              fills={fills}
               onReplayLevel={() => {
                 stopVoice()
                 setPhase('coloring')
@@ -234,6 +244,7 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
             <ColorPalette
               color={color}
               active={tool === 'brush'}
+              suggestion={suggestion}
               onChange={(hex) => {
                 setColor(hex)
                 setTool('brush')

@@ -32,6 +32,13 @@ export interface ColorRegion {
   label: string
 }
 
+export interface Photo {
+  src: string
+  alt: string
+  credit: string
+  sourceUrl: string
+}
+
 export interface QuizQuestion {
   id: string
   question: string
@@ -39,6 +46,12 @@ export interface QuizQuestion {
   answerIndex: number
   /** Friendly explanation read after answering. */
   explanation: string
+  /** Gentle clue revealed when the child asks for a hint. */
+  hint: string
+  /** Rover part the question is about; highlighted in the child's own artwork. */
+  componentId?: string
+  /** Real NASA photo shown as a picture clue. */
+  image: Photo
 }
 
 export interface VoiceProfile {
@@ -64,6 +77,11 @@ export interface LevelData {
   completion: VoiceLine
   components: RoverComponent[]
   regions: ColorRegion[]
+  /**
+   * Palette color closest to how each region looks in real NASA photos.
+   * Only a gentle suggestion — children can still color freely.
+   */
+  suggestedColors: Record<string, string>
   quiz: QuizQuestion[]
   /** Minimum correct answers to unlock the next level. */
   passScore: number

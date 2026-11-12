@@ -180,6 +180,20 @@
   animation: hl-pulse 1.2s ease-in-out infinite;
 }
 
+/* Gentle "try this color" ring on the suggested palette swatch */
+@keyframes suggest-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 7px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+}
+.suggest-ring {
+  animation: suggest-pulse 1.8s ease-in-out infinite;
+}
+
 @keyframes pop-in {
   0% {
     transform: scale(0.6);

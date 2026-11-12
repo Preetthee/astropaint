@@ -1,9 +1,10 @@
 'use client'
 
-import { ArrowLeft, CheckCircle2, Lock, Play, RotateCcw, Star } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Globe2, Lock, Moon, Play, Rocket, RotateCcw, Star } from 'lucide-react'
 import Link from 'next/link'
 import { sfx } from '@/lib/audio'
 import { LEVELS, type LevelData } from '@/lib/levels'
+import { UPCOMING_LEVELS, type UpcomingLevel } from '@/lib/levels/upcoming'
 import { useHydrated } from '@/lib/local-store'
 import { getLevelProgress, isLevelUnlocked, useProgress } from '@/lib/progress'
 import { cn } from '@/lib/utils'
@@ -119,6 +120,53 @@ function LevelCard({ level }: { level: LevelData }) {
   )
 }
 
+function ComingSoonCard({ level, delay }: { level: UpcomingLevel; delay: number }) {
+  return (
+    <li
+      className="animate-rise flex flex-col overflow-hidden rounded-3xl bg-card ring-2 ring-border"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <figure className="relative">
+        <img
+          src={level.photo.src || '/placeholder.svg'}
+          alt={level.photo.alt}
+          className="aspect-[4/3] w-full object-cover opacity-70 grayscale-[60%]"
+        />
+        <span className="absolute top-2 left-2 rounded-full bg-background/90 px-3 py-1 text-sm font-bold">
+          Level {level.order}
+        </span>
+        <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-sm font-bold text-accent-foreground">
+          {level.destination === 'Moon' ? (
+            <Moon className="size-4" aria-hidden="true" />
+          ) : (
+            <Globe2 className="size-4" aria-hidden="true" />
+          )}
+          {level.destination}
+        </span>
+        <figcaption className="absolute right-2 bottom-2 max-w-[90%] truncate rounded-full bg-background/80 px-2 py-0.5 text-[11px] font-semibold">
+          {level.photo.credit}
+        </figcaption>
+      </figure>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <h3 className="text-xl font-bold text-balance">{level.name}</h3>
+        <p className="text-sm leading-relaxed text-muted-foreground">{level.teaser}</p>
+        <dl className="grid grid-cols-3 gap-1.5">
+          {level.facts.map((f) => (
+            <div key={f.label} className="flex flex-col rounded-xl bg-muted p-2">
+              <dt className="text-[11px] font-bold text-muted-foreground uppercase">{f.label}</dt>
+              <dd className="text-sm leading-snug font-bold">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-auto flex h-11 items-center justify-center gap-2 rounded-full bg-muted text-sm font-bold text-muted-foreground">
+          <Lock className="size-4" aria-hidden="true" />
+          Coming soon
+        </p>
+      </div>
+    </li>
+  )
+}
+
 export function LevelSelector() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col gap-8 px-4 py-6 md:px-6">
@@ -144,6 +192,21 @@ export function LevelSelector() {
           <LevelCard key={level.id} level={level} />
         ))}
       </div>
+
+      <section aria-labelledby="coming-soon" className="flex flex-col gap-4 pb-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <h2 id="coming-soon" className="flex items-center gap-2 text-3xl font-bold">
+            <Rocket className="size-7 text-accent" aria-hidden="true" />
+            Coming soon
+          </h2>
+          <p className="text-muted-foreground">More NASA explorers are on their way!</p>
+        </div>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {UPCOMING_LEVELS.map((u, i) => (
+            <ComingSoonCard key={u.id} level={u} delay={(LEVELS.length + i + 1) * 100} />
+          ))}
+        </ul>
+      </section>
     </main>
   )
 }
