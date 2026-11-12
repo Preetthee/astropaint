@@ -1,0 +1,268 @@
+import type { LevelData, Source } from './types'
+
+const SRC = {
+  science: {
+    label: 'NASA — Perseverance Science & Instruments',
+    url: 'https://science.nasa.gov/mission/mars-2020-perseverance/science/',
+  },
+  components: {
+    label: 'NASA — Perseverance Rover Components',
+    url: 'https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/',
+  },
+  mission: {
+    label: 'NASA — Mars 2020 Perseverance Mission',
+    url: 'https://science.nasa.gov/mission/mars-2020-perseverance/',
+  },
+  moxie: {
+    label: 'NASA — MOXIE Completes Mars Mission (Sept. 2023)',
+    url: 'https://www.nasa.gov/missions/mars-2020-perseverance/perseverance-rover/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/',
+  },
+} satisfies Record<string, Source>
+
+export const perseverance: LevelData = {
+  id: 'perseverance',
+  order: 1,
+  name: 'Perseverance',
+  title: 'Meet NASA Perseverance',
+  tagline: 'The rover searching for signs of ancient life',
+  mission: 'Mars 2020',
+  facts: [
+    { label: 'Landed', value: 'Feb 18, 2021' },
+    { label: 'Where', value: 'Jezero Crater' },
+    { label: 'Size', value: 'About a car' },
+  ],
+  description:
+    'Perseverance explores Jezero Crater, studies rocks for clues about ancient life, and collects rock samples in sealed tubes.',
+  photo: {
+    src: '/images/perseverance-selfie.jpg',
+    alt: 'Real photo: NASA’s Perseverance rover taking a selfie on Mars, with the small Ingenuity helicopter in the background.',
+    title: 'Perseverance’s Selfie with Ingenuity (PIA24542)',
+    credit: 'NASA/JPL-Caltech/MSSS',
+    sourceUrl: 'https://images.nasa.gov/details/PIA24542',
+  },
+  voice: { pitch: 1.25, rate: 0.95 },
+  accent: 'primary',
+  intro: {
+    text: "Hello, explorer! I'm Perseverance. I'm a NASA rover exploring Mars. I landed in Jezero Crater in 2021. Would you like to discover how I work? Pick a color and tap any part of me!",
+  },
+  allColored: {
+    text: 'Wow, you colored every part of me! Tap the Finish button whenever you are ready.',
+  },
+  completion: {
+    text: "Fantastic! You've discovered how I explore Mars. I'm ready for my next adventure!",
+  },
+  components: [
+    {
+      id: 'mastcamz',
+      name: 'Mastcam-Z cameras',
+      shortName: 'Mastcam-Z',
+      line: {
+        text: 'These are my Mastcam-Z cameras, up on my tall mast! They work like my eyes. They can zoom in to take detailed pictures of the Martian landscape.',
+      },
+      takeaway: 'Mastcam-Z cameras zoom in to take detailed pictures of Mars.',
+      sources: [SRC.science, SRC.components],
+    },
+    {
+      id: 'supercam',
+      name: 'SuperCam',
+      shortName: 'SuperCam',
+      line: {
+        text: 'My SuperCam helps scientists study rocks from a distance! It zaps a tiny spot with a laser from about 20 feet, or 7 meters, away to learn what the rock is made of. It even has a microphone to hear Mars!',
+      },
+      takeaway: 'SuperCam uses a laser to study rocks from about 7 meters away.',
+      sources: [SRC.components, SRC.science],
+    },
+    {
+      id: 'arm',
+      name: 'Robotic arm',
+      shortName: 'Robotic arm',
+      line: {
+        text: 'This is my robotic arm. It is about 7 feet long, with a shoulder, an elbow and a wrist, just like your arm! It helps me examine interesting rocks and collect samples for scientists.',
+      },
+      takeaway: 'The robotic arm holds science tools against rocks and collects samples.',
+      sources: [SRC.components],
+    },
+    {
+      id: 'drill',
+      name: 'Turret and coring drill',
+      shortName: 'Coring drill',
+      line: {
+        text: 'At the end of my arm is my turret, like a hand. Its drill takes rock cores. I seal them in special tubes, so scientists may study them on Earth one day.',
+      },
+      takeaway: 'The coring drill collects rock cores that are sealed in sample tubes.',
+      sources: [SRC.components, SRC.science],
+    },
+    {
+      id: 'pixl',
+      name: 'PIXL',
+      shortName: 'PIXL',
+      line: {
+        text: 'PIXL rides on my arm’s hand. It uses X-rays to find out which chemical elements are inside tiny spots on a rock.',
+      },
+      takeaway: 'PIXL uses X-rays to find the chemical elements in rocks.',
+      sources: [SRC.science, SRC.components],
+    },
+    {
+      id: 'sherloc',
+      name: 'SHERLOC',
+      shortName: 'SHERLOC',
+      line: {
+        text: 'SHERLOC is on my hand too, like a detective! It uses an ultraviolet laser to look for minerals and organic molecules, clues that could tell us if tiny life ever lived on Mars.',
+      },
+      takeaway: 'SHERLOC looks for minerals and organic molecules.',
+      sources: [SRC.science, SRC.components],
+    },
+    {
+      id: 'rimfax',
+      name: 'RIMFAX radar',
+      shortName: 'RIMFAX',
+      line: {
+        text: 'RIMFAX sits under the back of my body. It uses radar to see the layers of rock hidden underground, without any digging!',
+      },
+      takeaway: 'RIMFAX uses radar to see rock layers underground.',
+      sources: [SRC.science],
+    },
+    {
+      id: 'moxie',
+      name: 'MOXIE',
+      shortName: 'MOXIE',
+      line: {
+        text: 'MOXIE is tucked inside my body. It was an experiment that made oxygen from the carbon dioxide in the Martian air! It worked 16 times before finishing its job in 2023. Future astronauts might use machines like it.',
+      },
+      takeaway: 'MOXIE made oxygen from the carbon dioxide in Mars’ air.',
+      sources: [SRC.moxie],
+    },
+    {
+      id: 'wheels',
+      name: 'Wheels and rocker-bogie legs',
+      shortName: 'Wheels',
+      line: {
+        text: 'I have six wheels that help me travel across the rocky surface of Mars! They are made of aluminum, and each one has its own motor. My bendy rocker-bogie legs help me roll over rocks.',
+      },
+      takeaway: 'Perseverance has six aluminum wheels, each with its own motor.',
+      sources: [SRC.components],
+    },
+    {
+      id: 'body',
+      name: 'Warm electronics box',
+      shortName: 'Body',
+      line: {
+        text: 'This is my body. It is called the warm electronics box. It keeps my computer brain and electronics safe and warm.',
+      },
+      takeaway: 'The rover body protects its computer “brain” and electronics.',
+      sources: [SRC.components],
+    },
+    {
+      id: 'power',
+      name: 'Power source (MMRTG)',
+      shortName: 'Power',
+      line: {
+        text: 'This is my power source, at my back end. It is called an MMRTG. It turns heat into electricity, so I can work day and night without solar panels.',
+      },
+      takeaway: 'The MMRTG power source turns heat into electricity.',
+      sources: [SRC.components],
+    },
+    {
+      id: 'antenna',
+      name: 'High-gain antenna',
+      shortName: 'Antenna',
+      line: {
+        text: 'This hexagon is my high-gain antenna. I use it to talk directly with Earth!',
+      },
+      takeaway: 'The hexagon-shaped high-gain antenna talks directly with Earth.',
+      sources: [SRC.components],
+    },
+    {
+      id: 'jezero',
+      name: 'Jezero Crater',
+      shortName: 'Jezero Crater',
+      line: {
+        text: 'This is Jezero Crater, my home on Mars! Scientists think it was a place that may have been friendly to life long, long ago.',
+      },
+      takeaway: 'Perseverance explores Jezero Crater on Mars.',
+      sources: [SRC.science],
+    },
+  ],
+  regions: [
+    { id: 'sky', componentId: 'jezero', label: 'Mars sky' },
+    { id: 'rim', componentId: 'jezero', label: 'crater rim hills' },
+    { id: 'ground', componentId: 'jezero', label: 'Mars ground' },
+    { id: 'rock', componentId: 'jezero', label: 'rock' },
+    { id: 'mmrtg', componentId: 'power', label: 'power source' },
+    { id: 'hga', componentId: 'antenna', label: 'high-gain antenna' },
+    { id: 'mast', componentId: 'mastcamz', label: 'camera mast' },
+    { id: 'supercam', componentId: 'supercam', label: 'SuperCam head' },
+    { id: 'mastcamz', componentId: 'mastcamz', label: 'Mastcam-Z cameras' },
+    { id: 'deck', componentId: 'body', label: 'top deck' },
+    { id: 'body', componentId: 'body', label: 'rover body' },
+    { id: 'moxie', componentId: 'moxie', label: 'MOXIE' },
+    { id: 'rimfax', componentId: 'rimfax', label: 'RIMFAX' },
+    { id: 'bogie', componentId: 'wheels', label: 'bogie leg' },
+    { id: 'rocker', componentId: 'wheels', label: 'rocker leg' },
+    { id: 'wheel-rear', componentId: 'wheels', label: 'rear wheel' },
+    { id: 'wheel-middle', componentId: 'wheels', label: 'middle wheel' },
+    { id: 'wheel-front', componentId: 'wheels', label: 'front wheel' },
+    { id: 'arm-upper', componentId: 'arm', label: 'upper robotic arm' },
+    { id: 'arm-lower', componentId: 'arm', label: 'lower robotic arm' },
+    { id: 'drill', componentId: 'drill', label: 'coring drill' },
+    { id: 'turret', componentId: 'drill', label: 'arm turret' },
+    { id: 'sherloc', componentId: 'sherloc', label: 'SHERLOC' },
+    { id: 'pixl', componentId: 'pixl', label: 'PIXL' },
+  ],
+  quiz: [
+    {
+      id: 'p1',
+      question: 'What does Perseverance use its Mastcam-Z cameras for?',
+      options: [
+        'Taking detailed, zoomed-in pictures',
+        'Cooking space snacks',
+        'Making oxygen',
+        'Digging holes',
+      ],
+      answerIndex: 0,
+      explanation: 'Mastcam-Z cameras zoom in to take detailed pictures of Mars.',
+    },
+    {
+      id: 'p2',
+      question: 'How many wheels does Perseverance have?',
+      options: ['Four', 'Six', 'Eight', 'Three'],
+      answerIndex: 1,
+      explanation: 'Perseverance rolls on six wheels, and each one has its own motor.',
+    },
+    {
+      id: 'p3',
+      question: 'What does the robotic arm do?',
+      options: [
+        'Waves hello to astronauts',
+        'Sends messages to Earth',
+        'Holds tools against rocks and collects samples',
+        'Makes the rover fly',
+      ],
+      answerIndex: 2,
+      explanation: 'The robotic arm holds science tools against rocks and collects samples.',
+    },
+    {
+      id: 'p4',
+      question: 'What did MOXIE make from the Martian air?',
+      options: ['Water', 'Oxygen', 'Ice cream', 'Clouds'],
+      answerIndex: 1,
+      explanation: 'MOXIE made oxygen from the carbon dioxide in the air on Mars.',
+    },
+    {
+      id: 'p5',
+      question: 'What does RIMFAX use to look underground?',
+      options: ['A shovel', 'A flashlight', 'Radar', 'A magnet'],
+      answerIndex: 2,
+      explanation: 'RIMFAX uses radar to see rock layers hidden underground.',
+    },
+  ],
+  passScore: 3,
+  illustrationReferences: [
+    {
+      label: 'Perseverance’s Selfie with Ingenuity (PIA24542) — NASA/JPL-Caltech/MSSS',
+      url: 'https://images.nasa.gov/details/PIA24542',
+    },
+    SRC.components,
+    { label: 'NASA 3D Resources', url: 'https://science.nasa.gov/3d-resources/' },
+  ],
+}
