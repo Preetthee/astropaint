@@ -8,6 +8,7 @@ import { UPCOMING_LEVELS, type UpcomingLevel } from '@/lib/levels/upcoming'
 import { useHydrated } from '@/lib/local-store'
 import { getLevelProgress, isLevelUnlocked, useProgress } from '@/lib/progress'
 import { cn } from '@/lib/utils'
+import { RealPhotoButton } from './real-photo'
 import { SoundSettingsButton } from './sound-settings'
 
 function LevelCard({ level }: { level: LevelData }) {
@@ -89,7 +90,8 @@ function LevelCard({ level }: { level: LevelData }) {
             Best quiz score: {lp.bestScore} of {lp.total}
           </p>
         )}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto flex flex-col gap-3 pt-2">
+          <RealPhotoButton level={level} />
           {unlocked ? (
             <Link
               href={`/levels/${level.id}`}

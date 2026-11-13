@@ -191,7 +191,55 @@
   }
 }
 .suggest-ring {
-  animation: suggest-pulse 1.8s ease-in-out infinite;
+  animation: suggest-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes suggest-card-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+.suggest-card {
+  animation: suggest-card-glow 1.6s ease-out infinite;
+}
+
+/* Shake when a child taps a color before choosing a part */
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.animate-nudge {
+  animation: nudge 420ms ease-in-out;
+}
+
+/* Tutorial spotlight around the element the child should use next */
+@keyframes tutorial-spot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px var(--accent), 0 0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--accent), 0 0 0 18px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+.tutorial-target {
+  position: relative;
+  z-index: 30;
+  animation: tutorial-spot 1.4s ease-in-out infinite;
 }
 
 @keyframes pop-in {

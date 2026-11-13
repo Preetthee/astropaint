@@ -1,15 +1,17 @@
 'use client'
 
 import {
+  Camera,
   Download,
   Eraser,
+  GraduationCap,
+  Hand,
   HelpCircle,
   Home,
   Lock,
   Paintbrush,
   PartyPopper,
   Redo2,
-  Search,
   Trash2,
   Undo2,
 } from 'lucide-react'
@@ -17,11 +19,12 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ILLUSTRATIONS } from '@/components/illustrations'
 import { Modal } from '@/components/modal'
+import { RealPhotoModal } from '@/components/real-photo'
 import { RoverAvatar } from '@/components/rover-avatar'
 import { SoundSettingsButton } from '@/components/sound-settings'
 import { sfx, speak, stopVoice } from '@/lib/audio'
 import { celebrate } from '@/lib/celebrate'
-import { downloadSvgAsPng, PALETTE, useColoringHistory } from '@/lib/coloring'
+import { downloadSvgAsPng, useColoringHistory } from '@/lib/coloring'
 import { getLevel, LEVELS, type LevelData } from '@/lib/levels'
 import { useHydrated } from '@/lib/local-store'
 import {
@@ -30,6 +33,7 @@ import {
   markDiscovered,
   progressStore,
   saveArtwork,
+  setTutorialSeen,
   updateLevel,
   useProgress,
   type Fills,
@@ -41,32 +45,31 @@ import { CompletionScreen } from './completion-screen'
 import { PartsList } from './parts-list'
 import { ProgressBar } from './progress-bar'
 import { Quiz } from './quiz'
+import { TUTORIAL_ORDER, TUTORIAL_TEXT, TutorialCoach, type TutorialStep } from './tutorial-coach'
 
-type Tool = 'brush' | 'eraser' | 'explore'
 type Phase = 'intro' | 'coloring' | 'complete' | 'quiz'
 
 function ToolButton({
   label,
   icon: Icon,
   onClick,
-  pressed,
   disabled,
+  className,
 }: {
   label: string
   icon: typeof Paintbrush
   onClick: () => void
-  pressed?: boolean
   disabled?: boolean
+  className?: string
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-pressed={pressed}
       className={cn(
-        'flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-2 text-xs font-bold transition disabled:opacity-35',
-        pressed ? 'bg-accent text-accent-foreground' : 'bg-muted text-foreground hover:bg-border',
+        'flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-muted px-1 py-2 text-xs font-bold text-foreground transition hover:bg-border disabled:opacity-35',
+        className,
       )}
     >
       <Icon className="size-6" aria-hidden="true" />
@@ -84,13 +87,14 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
   const lp = getLevelProgress(progress, level.id)
 
   const [phase, setPhase] = useState<Phase>('intro')
-  const [tool, setTool] = useState<Tool>('brush')
-  const [color, setColor] = useState(PALETTE[0].hex)
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [dialog, setDialog] = useState({ heading: `Hi! I'm ${level.name}`, line: level.intro })
   const [confirmReset, setConfirmReset] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [lastRegion, setLastRegion] = useState<string | null>(null)
+  const [photoOpen, setPhotoOpen] = useState(false)
+  const [nudge, setNudge] = useState(0)
+  const [tutorial, setTutorial] = useState<TutorialStep | null>(null)
 
   const regionToComponent = useMemo(
     () => Object.fromEntries(level.regions.map((r) => [r.id, r.componentId])),
@@ -101,20 +105,21 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
     [level],
   )
   const highlighted = useMemo(
-    () => new Set(level.regions.filter((r) => r.componentId === selected).map((r) => r.id)),
-    [level, selected],
+    () => new Set(selectedRegion ? [selectedRegion] : []),
+    [selectedRegion],
   )
 
   const coloredCount = level.regions.filter((r) => fills[r.id]).length
   const total = level.regions.length
   const allColored = coloredCount === total
 
-  // Suggest the real-life color for the part the child last touched,
-  // or the first part still waiting for color.
-  const suggestionRegion = lastRegion ?? level.regions.find((r) => !fills[r.id])?.id ?? null
-  const suggestedHex = suggestionRegion ? level.suggestedColors[suggestionRegion] : undefined
-  const suggestion =
-    suggestionRegion && suggestedHex ? { hex: suggestedHex, partLabel: labels[suggestionRegion] } : null
+  const paletteTarget = selectedRegion
+    ? {
+        partLabel: labels[selectedRegion],
+        currentHex: fills[selectedRegion],
+        suggestedHex: level.suggestedColors[selectedRegion],
+      }
+    : null
 
   // Persist artwork to localStorage whenever the fills change.
   useEffect(() => {
@@ -128,6 +133,22 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
     speak(line, level.voice)
   }
 
+  const goToTutorialStep = (step: TutorialStep) => {
+    setTutorial(step)
+    speak({ text: TUTORIAL_TEXT[step].text }, level.voice)
+  }
+
+  const advanceTutorial = (from: TutorialStep) => {
+    if (tutorial !== from) return
+    const next = TUTORIAL_ORDER[TUTORIAL_ORDER.indexOf(from) + 1]
+    if (next) goToTutorialStep(next)
+  }
+
+  const endTutorial = () => {
+    setTutorial(null)
+    setTutorialSeen(true)
+  }
+
   const explain = (componentId: string, force = false) => {
     const comp = level.components.find((c) => c.id === componentId)
     if (!comp) return
@@ -136,42 +157,73 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
     if (force || componentId !== selected) say(comp.name, comp.line)
   }
 
-  const handleRegion = (regionId: string) => {
-    const componentId = regionToComponent[regionId]
-    setLastRegion(regionId)
-    if (tool === 'explore') {
-      sfx.click()
-      explain(componentId, true)
+  const selectRegion = (regionId: string, force = false) => {
+    sfx.click()
+    setSelectedRegion(regionId)
+    explain(regionToComponent[regionId], force)
+    advanceTutorial('select')
+  }
+
+  const selectComponent = (componentId: string) => {
+    const regions = level.regions.filter((r) => r.componentId === componentId)
+    const target = regions.find((r) => !fills[r.id]) ?? regions[0]
+    if (target) selectRegion(target.id, true)
+  }
+
+  const paint = (hex: string | null) => {
+    if (!selectedRegion) {
+      sfx.erase()
+      setNudge((n) => n + 1)
+      setDialog({
+        heading: 'Pick a part first',
+        line: { text: 'First, tap a part of my picture. Then choose a color!' },
+      })
+      speak({ text: 'First, tap a part of my picture. Then choose a color!' }, level.voice)
       return
     }
+    if (hex === null && !fills[selectedRegion]) return
+    if (hex !== null && fills[selectedRegion] === hex) return
+
     const wasComplete = allColored
-    const nextColor = tool === 'eraser' ? null : color
-    if (tool === 'eraser') sfx.erase()
+    if (hex === null) sfx.erase()
     else sfx.paint()
-    history.paint(regionId, nextColor)
+    history.paint(selectedRegion, hex)
 
     const willBeComplete =
-      tool === 'brush' && level.regions.every((r) => r.id === regionId || fills[r.id])
+      hex !== null && level.regions.every((r) => r.id === selectedRegion || fills[r.id])
     if (!wasComplete && willBeComplete) {
-      markDiscovered(level.id, componentId)
-      setSelected(componentId)
       updateLevel(level.id, { colored: true })
       sfx.fanfare()
       celebrate()
       say('You colored every part!', level.allColored)
+      if (tutorial) endTutorial()
       return
     }
-    explain(componentId)
+    if (hex !== null) advanceTutorial('paint')
   }
 
   const finish = () => {
     sfx.whoosh()
     setSelected(null)
+    setSelectedRegion(null)
     setPhase('complete')
     window.scrollTo({ top: 0, behavior: 'smooth' })
     celebrate()
     speak(level.completion, level.voice)
   }
+
+  const startPlaying = () => {
+    setPhase('coloring')
+    sfx.whoosh()
+    if (level.order === 1 && !progressStore.get().tutorialSeen) {
+      setDialog({ heading: `Hi! I'm ${level.name}`, line: level.intro })
+      goToTutorialStep('select')
+    } else {
+      say(`Hi! I'm ${level.name}`, level.intro)
+    }
+  }
+
+  const spot = (step: TutorialStep) => tutorial === step && 'tutorial-target'
 
   if (phase === 'complete' || phase === 'quiz') {
     return (
@@ -209,7 +261,12 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[1400px] flex-col gap-3 px-3 py-3 md:px-5 lg:h-dvh lg:min-h-0">
+    <main
+      className={cn(
+        'mx-auto flex min-h-dvh w-full max-w-[1400px] flex-col gap-3 px-3 py-3 md:px-5 lg:h-dvh lg:min-h-0',
+        tutorial && 'pb-48 lg:pb-44',
+      )}
+    >
       <GameHeader level={level} onHelp={() => setHelpOpen(true)}>
         <ProgressBar value={coloredCount} total={total} label="Parts colored" />
         <div className="hidden sm:flex sm:min-w-40 sm:flex-col">
@@ -217,14 +274,30 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
         </div>
       </GameHeader>
 
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[13rem_minmax(0,1fr)_22rem]">
-        {/* Tools + palette */}
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[14rem_minmax(0,1fr)_22rem]">
+        {/* Palette + tools */}
         <aside className="order-3 flex flex-col gap-3 rounded-3xl bg-card p-3 ring-2 ring-border lg:order-1 lg:overflow-y-auto">
-          <div className="grid grid-cols-7 gap-1.5 lg:grid-cols-3">
-            <ToolButton label="Brush" icon={Paintbrush} pressed={tool === 'brush'} onClick={() => { sfx.click(); setTool('brush') }} />
-            <ToolButton label="Eraser" icon={Eraser} pressed={tool === 'eraser'} onClick={() => { sfx.click(); setTool('eraser') }} />
-            <ToolButton label="Explore" icon={Search} pressed={tool === 'explore'} onClick={() => { sfx.click(); setTool('explore') }} />
-            <ToolButton label="Undo" icon={Undo2} disabled={!history.canUndo} onClick={() => { sfx.click(); history.undo() }} />
+          <div className={cn('rounded-2xl p-1', spot('paint'))}>
+            <ColorPalette target={paletteTarget} onPick={paint} nudge={nudge} />
+          </div>
+          <div className="grid grid-cols-6 gap-1.5 lg:grid-cols-3">
+            <ToolButton
+              label="Erase"
+              icon={Eraser}
+              disabled={!selectedRegion || !fills[selectedRegion]}
+              onClick={() => paint(null)}
+            />
+            <ToolButton
+              label="Undo"
+              icon={Undo2}
+              disabled={!history.canUndo}
+              className={cn(spot('undo'))}
+              onClick={() => {
+                sfx.click()
+                history.undo()
+                advanceTutorial('undo')
+              }}
+            />
             <ToolButton label="Redo" icon={Redo2} disabled={!history.canRedo} onClick={() => { sfx.click(); history.redo() }} />
             <ToolButton label="Reset" icon={Trash2} disabled={coloredCount === 0} onClick={() => { sfx.click(); setConfirmReset(true) }} />
             <ToolButton
@@ -236,35 +309,24 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
                   void downloadSvgAsPng(svgRef.current, `${level.id}-coloring.png`, `My ${level.name} — NASA Space Explorers`)
               }}
             />
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-bold text-muted-foreground">
-              {tool === 'eraser' ? 'Eraser: tap a part to clear it' : tool === 'explore' ? 'Explore: tap a part to learn' : 'Pick a color'}
-            </p>
-            <ColorPalette
-              color={color}
-              active={tool === 'brush'}
-              suggestion={suggestion}
-              onChange={(hex) => {
-                setColor(hex)
-                setTool('brush')
-                sfx.click()
-              }}
-            />
+            <ToolButton label="Real photo" icon={Camera} onClick={() => { sfx.click(); setPhotoOpen(true) }} />
           </div>
         </aside>
 
         {/* Canvas */}
         <section
-          aria-label={`${level.name} coloring page`}
-          className="order-2 flex min-h-0 items-center justify-center rounded-[2rem] bg-paper p-2 ring-4 ring-border lg:order-2"
+          aria-label={`${level.name} coloring page. Tap a part to choose it.`}
+          className={cn(
+            'order-2 flex min-h-0 items-center justify-center rounded-[2rem] bg-paper p-2 ring-4 ring-border lg:order-2',
+            spot('select'),
+          )}
         >
           <Art
             fills={fills}
             interactive
             labels={labels}
             highlighted={highlighted}
-            onRegion={handleRegion}
+            onRegion={(id) => selectRegion(id)}
             svgRef={svgRef}
             className="h-auto max-h-full w-full lg:h-full"
           />
@@ -272,21 +334,23 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
 
         {/* Character + parts */}
         <aside className="order-1 flex min-h-0 flex-col gap-3 lg:order-3 lg:overflow-y-auto">
-          <CharacterDialog
-            level={level}
-            heading={dialog.heading}
-            text={dialog.line.text}
-            onReplay={() => speak(dialog.line, level.voice)}
-          />
+          <div className={cn('rounded-3xl', spot('listen'))}>
+            <CharacterDialog
+              level={level}
+              heading={dialog.heading}
+              text={dialog.line.text}
+              onReplay={() => {
+                speak(dialog.line, level.voice)
+                if (tutorial === 'listen') setTutorial('undo')
+              }}
+            />
+          </div>
           <div className="hidden rounded-3xl bg-card p-4 ring-2 ring-border lg:block">
             <PartsList
               level={level}
               discovered={lp.discovered}
               selected={selected}
-              onSelect={(id) => {
-                sfx.click()
-                explain(id, true)
-              }}
+              onSelect={selectComponent}
             />
           </div>
           <button
@@ -325,13 +389,31 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
             level={level}
             discovered={lp.discovered}
             selected={selected}
-            onSelect={(id) => {
-              sfx.click()
-              explain(id, true)
-            }}
+            onSelect={selectComponent}
           />
         </div>
       </div>
+
+      {tutorial && (
+        <TutorialCoach
+          level={level}
+          step={tutorial}
+          onNext={() => {
+            sfx.click()
+            if (tutorial === 'done') {
+              endTutorial()
+              say(`Hi! I'm ${level.name}`, { text: "Let's color! Tap a part, then pick a color." })
+            } else {
+              advanceTutorial(tutorial)
+            }
+          }}
+          onSkip={() => {
+            sfx.click()
+            stopVoice()
+            endTutorial()
+          }}
+        />
+      )}
 
       {phase === 'intro' && (
         <Modal
@@ -343,21 +425,29 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
             <RoverAvatar accent={level.accent} className="size-20" />
             <p className="text-lg leading-relaxed font-semibold">{level.intro.text}</p>
           </div>
-          <ul className="flex flex-col gap-2 rounded-2xl bg-muted p-4 leading-relaxed">
-            <li>
-              <strong>Tap a part</strong> to color it and hear what it does.
+          <ol className="flex flex-col gap-2 rounded-2xl bg-muted p-4 leading-relaxed">
+            <li className="flex items-center gap-2">
+              <Hand className="size-5 shrink-0 text-accent" aria-hidden="true" />
+              <span>
+                <strong>Tap a part</strong> of the rover to hear what it does.
+              </span>
             </li>
-            <li>
-              <strong>Color every part</strong> to finish the mission and take a quiz.
+            <li className="flex items-center gap-2">
+              <Paintbrush className="size-5 shrink-0 text-accent" aria-hidden="true" />
+              <span>
+                <strong>Tap a color</strong> to paint it. The star shows the real color!
+              </span>
             </li>
-          </ul>
+            <li className="flex items-center gap-2">
+              <PartyPopper className="size-5 shrink-0 text-accent" aria-hidden="true" />
+              <span>
+                <strong>Color every part</strong> to finish and play the quiz.
+              </span>
+            </li>
+          </ol>
           <button
             type="button"
-            onClick={() => {
-              setPhase('coloring')
-              sfx.whoosh()
-              say(`Hi! I'm ${level.name}`, level.intro)
-            }}
+            onClick={startPlaying}
             className="flex h-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground transition hover:-translate-y-0.5"
             style={{ fontFamily: 'var(--font-heading)' }}
           >
@@ -377,6 +467,7 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
               history.reset()
               sfx.erase()
               setSelected(null)
+              setSelectedRegion(null)
               setConfirmReset(false)
             }}
             className="h-14 flex-1 rounded-full bg-primary text-lg font-bold text-primary-foreground"
@@ -392,7 +483,15 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
           </button>
         </div>
       </Modal>
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <RealPhotoModal level={level} open={photoOpen} onClose={() => setPhotoOpen(false)} />
+      <HelpModal
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onTutorial={() => {
+          setHelpOpen(false)
+          goToTutorialStep('select')
+        }}
+      />
     </main>
   )
 }
@@ -437,13 +536,22 @@ function GameHeader({
   )
 }
 
-function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function HelpModal({
+  open,
+  onClose,
+  onTutorial,
+}: {
+  open: boolean
+  onClose: () => void
+  onTutorial?: () => void
+}) {
   const items = [
-    { icon: Paintbrush, title: 'Brush', text: 'Pick a color, then tap any part of the rover to paint it.' },
-    { icon: Eraser, title: 'Eraser', text: 'Tap a part to make it white again.' },
-    { icon: Search, title: 'Explore', text: 'Tap a part to hear about it without coloring.' },
+    { icon: Hand, title: 'Choose a part', text: 'Tap any part of the rover. It glows and the rover tells you about it.' },
+    { icon: Paintbrush, title: 'Paint it', text: 'Tap a color. The color with a star is how the real rover looks.' },
+    { icon: Eraser, title: 'Erase', text: 'Choose a part, then tap Erase to make it white again.' },
     { icon: Undo2, title: 'Undo and Redo', text: 'Go back or forward one step.' },
     { icon: Trash2, title: 'Reset', text: 'Clear every color and start fresh.' },
+    { icon: Camera, title: 'Real photo', text: 'See a real NASA photo of the rover.' },
     { icon: Download, title: 'Save', text: 'Download your picture to keep or print.' },
   ]
   return (
@@ -462,6 +570,16 @@ function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         Color every part to finish the mission. Then answer the quiz to unlock the next rover. Your coloring is saved
         on this device automatically.
       </p>
+      {onTutorial && (
+        <button
+          type="button"
+          onClick={onTutorial}
+          className="flex h-14 items-center justify-center gap-2 rounded-full bg-primary text-lg font-bold text-primary-foreground transition hover:-translate-y-0.5"
+        >
+          <GraduationCap className="size-5" aria-hidden="true" />
+          Play the tutorial again
+        </button>
+      )}
     </Modal>
   )
 }

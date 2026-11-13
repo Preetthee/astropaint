@@ -43,7 +43,7 @@ export const perseverance: LevelData = {
   voice: { pitch: 1.25, rate: 0.95 },
   accent: 'primary',
   intro: {
-    text: "Hello, explorer! I'm Perseverance. I'm a NASA rover exploring Mars. I landed in Jezero Crater in 2021. Would you like to discover how I work? Pick a color and tap any part of me!",
+    text: "Hello, explorer! I'm Perseverance. I'm a NASA rover exploring Mars. I landed in Jezero Crater in 2021. Would you like to discover how I work? Tap any part of me, then pick a color!",
   },
   allColored: {
     text: 'Wow, you colored every part of me! Tap the Finish button whenever you are ready.',

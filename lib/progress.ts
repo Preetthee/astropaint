@@ -16,12 +16,19 @@ export interface LevelProgress {
 export interface Progress {
   levels: Record<string, LevelProgress>
   artwork: Record<string, Fills>
+  /** True once the child has finished or skipped the hands-on tutorial. */
+  tutorialSeen?: boolean
 }
 
 export const progressStore = createLocalStore<Progress>('nse:progress:v1', {
   levels: {},
   artwork: {},
+  tutorialSeen: false,
 })
+
+export function setTutorialSeen(seen: boolean) {
+  progressStore.set((prev) => ({ ...prev, tutorialSeen: seen }))
+}
 
 export const useProgress = () => useLocalStore(progressStore)
 
