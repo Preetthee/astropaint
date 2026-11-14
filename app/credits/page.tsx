@@ -2,6 +2,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SpaceBackground } from '@/components/space-background'
+import { EXPLORERS } from '@/lib/legacy/explorers'
 import { LEVELS } from '@/lib/levels'
 
 export const metadata: Metadata = {
@@ -86,6 +87,23 @@ export default function CreditsPage() {
             </div>
           </section>
         ))}
+
+        <section className="flex flex-col gap-4 rounded-3xl bg-card p-6 ring-2 ring-border">
+          <h2 className="text-3xl font-bold">The Silent Explorers</h2>
+          <p className="leading-relaxed text-muted-foreground">
+            Story facts come from NASA mission pages. Map pins use published landing-site coordinates on NASA global maps:{' '}
+            <SourceLink label="CGI Moon Kit (NASA SVS)" url="https://svs.gsfc.nasa.gov/4720" /> and{' '}
+            <SourceLink label="NASA 3D Resources" url="https://github.com/nasa/NASA-3D-Resources" />.
+          </p>
+          <ul className="flex flex-col gap-2">
+            {EXPLORERS.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="font-bold">{e.name}:</span>
+                <SourceLink label={e.photo.credit} url={e.photo.sourceUrl} />
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className="flex flex-col gap-2 rounded-3xl bg-card p-6 leading-relaxed ring-2 ring-border">
           <h2 className="text-2xl font-bold">Sound & voice</h2>
