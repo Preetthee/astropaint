@@ -1,6 +1,6 @@
 'use client'
 
-import { Info, Map, Play, Volume2 } from 'lucide-react'
+import { BookOpen, Info, Map, Play, Volume2 } from 'lucide-react'
 import Link from 'next/link'
 import { PerseveranceArt } from '@/components/illustrations/perseverance-art'
 import { sfx, speak, useVoiceState } from '@/lib/audio'
@@ -106,6 +106,22 @@ export function MainMenu() {
               Choose level
             </Link>
           </div>
+          <Link
+            href="/stories"
+            onClick={() => sfx.whoosh()}
+            className="animate-rise flex w-full items-center gap-4 rounded-3xl bg-card p-4 text-left ring-2 ring-border transition hover:-translate-y-0.5 hover:ring-accent sm:w-auto"
+            style={{ animationDelay: '320ms' }}
+          >
+            <BookOpen className="size-8 shrink-0 text-accent" aria-hidden="true" />
+            <span className="flex flex-col">
+              <span className="text-xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
+                The Silent Explorers
+              </span>
+              <span className="text-sm text-muted-foreground">
+                Hear the stories of 16 machines NASA left on the Moon, on Mars and in deep space
+              </span>
+            </span>
+          </Link>
           {hydrated && (
             <p className="text-sm font-semibold text-muted-foreground">
               {allDone
