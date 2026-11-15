@@ -429,13 +429,13 @@ function LevelPlay({ level, savedFills }: { level: LevelData; savedFills: Fills 
             <li className="flex items-center gap-2">
               <Hand className="size-5 shrink-0 text-accent" aria-hidden="true" />
               <span>
-                <strong>Tap a part</strong> of the rover to hear what it does.
+                <strong>Tap a part</strong> of the explorer to hear what it does.
               </span>
             </li>
             <li className="flex items-center gap-2">
               <Paintbrush className="size-5 shrink-0 text-accent" aria-hidden="true" />
               <span>
-                <strong>Tap a color</strong> to paint it. The star shows the real color!
+                <strong>Tap a color</strong> to paint it. The star suggests a color to try!
               </span>
             </li>
             <li className="flex items-center gap-2">
@@ -546,12 +546,12 @@ function HelpModal({
   onTutorial?: () => void
 }) {
   const items = [
-    { icon: Hand, title: 'Choose a part', text: 'Tap any part of the rover. It glows and the rover tells you about it.' },
-    { icon: Paintbrush, title: 'Paint it', text: 'Tap a color. The color with a star is how the real rover looks.' },
+    { icon: Hand, title: 'Choose a part', text: 'Tap any part of the explorer. It glows and the explorer tells you about it.' },
+    { icon: Paintbrush, title: 'Paint it', text: 'Tap a color. The color with a star is a suggested real-world color.' },
     { icon: Eraser, title: 'Erase', text: 'Choose a part, then tap Erase to make it white again.' },
     { icon: Undo2, title: 'Undo and Redo', text: 'Go back or forward one step.' },
     { icon: Trash2, title: 'Reset', text: 'Clear every color and start fresh.' },
-    { icon: Camera, title: 'Real photo', text: 'See a real NASA photo of the rover.' },
+    { icon: Camera, title: 'Real photo', text: 'See a real NASA photo of this explorer.' },
     { icon: Download, title: 'Save', text: 'Download your picture to keep or print.' },
   ]
   return (
@@ -567,7 +567,7 @@ function HelpModal({
         ))}
       </ul>
       <p className="leading-relaxed text-muted-foreground">
-        Color every part to finish the mission. Then answer the quiz to unlock the next rover. Your coloring is saved
+        Color every part to finish the mission. Then answer the quiz to unlock the next explorer. Your coloring is saved
         on this device automatically.
       </p>
       {onTutorial && (
@@ -609,7 +609,7 @@ export function GameScreen({ levelId }: { levelId: string }) {
         </span>
         <h1 className="text-4xl font-bold text-balance">{level.name} is still locked</h1>
         <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
-          Finish Level {prev?.order} and pass its quiz to unlock this rover.
+          Finish Level {prev?.order} and pass its quiz to unlock this explorer.
         </p>
         {prev && (
           <Link

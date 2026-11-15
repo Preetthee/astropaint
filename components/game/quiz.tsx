@@ -101,7 +101,7 @@ export function Quiz({
       speak(
         {
           text: `You got ${score} out of ${total}! ${
-            next ? `You unlocked ${next.name}!` : 'You finished every rover. You are a true space explorer!'
+            next ? `You unlocked ${next.name}!` : 'You finished every explorer. You are a true space explorer!'
           }`,
         },
         level.voice,
@@ -168,8 +168,8 @@ export function Quiz({
           {passed
             ? next
               ? `${next.name} is now unlocked. Ready for Level ${next.order}?`
-              : 'You finished every rover. You are a true space explorer!'
-            : `Get ${level.passScore} right to unlock the next rover. Every explorer practices — let's try again!`}
+              : 'You finished every explorer. You are a true space explorer!'
+            : `Get ${level.passScore} right to unlock the next explorer. Every explorer practices — let's try again!`}
         </p>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           {passed && next && (
@@ -250,7 +250,7 @@ export function Quiz({
                 NASA photo
               </ClueTab>
               <ClueTab active={view === 'rover'} onClick={() => setView('rover')} icon={Search}>
-                Find it on my rover
+                Find it on my picture
               </ClueTab>
             </div>
           )}
