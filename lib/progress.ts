@@ -8,6 +8,7 @@ export type Fills = Record<string, string>
 export interface LevelProgress {
   colored: boolean
   completed: boolean
+  skipped: boolean
   bestScore: number
   total: number
   discovered: string[]
@@ -35,6 +36,7 @@ export const useProgress = () => useLocalStore(progressStore)
 const emptyLevel: LevelProgress = {
   colored: false,
   completed: false,
+  skipped: false,
   bestScore: 0,
   total: 0,
   discovered: [],
@@ -49,7 +51,20 @@ export function isLevelUnlocked(p: Progress, id: string): boolean {
   if (!level) return false
   if (level.order === 1) return true
   const prev = LEVELS.find((l) => l.order === level.order - 1)
-  return prev ? getLevelProgress(p, prev.id).completed : true
+  if (!prev) return true
+  const previousProgress = getLevelProgress(p, prev.id)
+  return previousProgress.completed || previousProgress.skipped
+}
+
+export function skipLevel(id: string) {
+  progressStore.set((prev) => {
+    const current = getLevelProgress(prev, id)
+    if (current.completed || current.skipped || !isLevelUnlocked(prev, id)) return prev
+    return {
+      ...prev,
+      levels: { ...prev.levels, [id]: { ...current, skipped: true } },
+    }
+  })
 }
 
 export function updateLevel(id: string, patch: Partial<LevelProgress>) {
