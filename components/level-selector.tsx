@@ -1,11 +1,11 @@
 'use client'
 
-import { ArrowLeft, CheckCircle2, Lock, Play, RotateCcw, Star } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FastForward, Lock, Play, RotateCcw, Star } from 'lucide-react'
 import Link from 'next/link'
 import { sfx } from '@/lib/audio'
 import { LEVELS, type LevelData } from '@/lib/levels'
 import { useHydrated } from '@/lib/local-store'
-import { getLevelProgress, isLevelUnlocked, useProgress } from '@/lib/progress'
+import { getLevelProgress, isLevelUnlocked, skipLevel, useProgress } from '@/lib/progress'
 import { cn } from '@/lib/utils'
 import { RealPhotoButton } from './real-photo'
 import { SoundSettingsButton } from './sound-settings'
@@ -54,10 +54,10 @@ function LevelCard({ level }: { level: LevelData }) {
             </span>
           </div>
         )}
-        {lp.completed && (
+        {(lp.completed || lp.skipped) && (
           <span className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-secondary px-3 py-2 font-bold text-secondary-foreground">
             <CheckCircle2 className="size-5" aria-hidden="true" />
-            Completed
+            {lp.skipped && !lp.completed ? 'Skipped' : 'Completed'}
           </span>
         )}
       </figure>
@@ -114,6 +114,20 @@ function LevelCard({ level }: { level: LevelData }) {
               <Lock className="size-5" aria-hidden="true" />
               Locked
             </p>
+          )}
+          {unlocked && !lp.completed && !lp.skipped && (
+            <button
+              type="button"
+              onClick={() => {
+                sfx.click()
+                skipLevel(level.id)
+              }}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-full px-4 font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label={`Skip ${level.title} and unlock the next level`}
+            >
+              <FastForward className="size-5" aria-hidden="true" />
+              Skip this level
+            </button>
           )}
         </div>
       </div>
