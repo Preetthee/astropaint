@@ -10,9 +10,9 @@ function makeLevel(config: {
   id: string; order: number; name: string; title: string; tagline: string; mission: string; destination: string;
   facts: LevelData['facts']; description: string; photo: LevelData['photo']; intro: string; completion: string;
   components: [string, string, string, Source[]][]; quiz: [string, string[], number, string, string, Source][];
-  colors: Record<string, string>
+  colors: Record<string, string>; regions?: { id: string; componentId: string; label: string }[]
 }): LevelData {
-  const regions = ['sky', 'ground', 'vehicle', 'wheel1', 'wheel2', 'wheel3', 'wheel4', 'wheel5', 'wheel6', 'instrument', 'antenna']
+  const defaultRegions = ['sky', 'ground', 'vehicle', 'wheel1', 'wheel2', 'wheel3', 'wheel4', 'wheel5', 'wheel6', 'instrument', 'antenna']
   const components = config.components.map(([id, name, text, sources]) => ({
     id, name, shortName: name, line: { text }, takeaway: text, sources,
   }))
@@ -21,14 +21,19 @@ function makeLevel(config: {
     instrument: config.components[3][0], antenna: config.components[4][0],
   }
   for (let i = 1; i <= 6; i++) componentFor[`wheel${i}`] = config.components[2][0]
+  const levelRegions = config.regions ?? defaultRegions.map((id) => ({
+    id,
+    componentId: componentFor[id],
+    label: ({ sky: `${config.destination} sky`, ground: `${config.destination} ground`, vehicle: `${config.name} body`, instrument: 'science instrument', antenna: 'antenna', wheel1: 'front wheel', wheel2: 'middle wheel', wheel3: 'back wheel', wheel4: 'far front wheel', wheel5: 'far middle wheel', wheel6: 'far back wheel' } as Record<string, string>)[id],
+  }))
   return {
     id: config.id, order: config.order, name: config.name, title: config.title, tagline: config.tagline,
     mission: config.mission, facts: config.facts, description: config.description, photo: config.photo,
     voice: { pitch: 1.05, rate: 0.93 }, accent: config.order % 2 ? 'primary' : 'secondary',
     intro: { text: config.intro }, allColored: { text: 'Every part is colored! Tap Finish when you are ready to see what this explorer helped us learn.' },
     completion: { text: config.completion }, components,
-    regions: regions.map((id) => ({ id, componentId: componentFor[id], label: ({ sky: `${config.destination} sky`, ground: `${config.destination} ground`, vehicle: `${config.name} body`, instrument: 'science instrument', antenna: 'antenna', wheel1: 'front wheel', wheel2: 'middle wheel', wheel3: 'back wheel', wheel4: 'far front wheel', wheel5: 'far middle wheel', wheel6: 'far back wheel' } as Record<string, string>)[id] })),
-    suggestedColors: Object.fromEntries(regions.map((id) => [id, config.colors[id] ?? '#b7bfcc'])),
+    regions: levelRegions,
+    suggestedColors: Object.fromEntries(levelRegions.map(({ id }) => [id, config.colors[id] ?? '#b7bfcc'])),
     quiz: config.quiz.map(([question, options, answerIndex, explanation, hint, source], i) => ({
       id: `${config.id}-${i + 1}`, question, options, answerIndex, explanation, hint,
       image: { src: config.photo.src, alt: config.photo.alt, credit: config.photo.credit, sourceUrl: source.url },
@@ -48,7 +53,15 @@ export const ingenuity = makeLevel({
   description: 'Ingenuity began as a tiny flight experiment. Its 72 flights proved that powered flight could work in Mars’ thin air and helped Perseverance explore.',
   intro: 'Hi! I am Ingenuity, a small helicopter that flew on Mars. My test flights showed future explorers how to scout the way from the sky. Tap my parts to learn how I flew!',
   completion: 'You learned how my blades, solar panel, cameras and tiny body helped me make history as the first powered aircraft to fly on another planet.',
-  components: [['landscape','Mars landscape','Mars has a very thin atmosphere. My blades had to spin quickly to lift me there.',[ingenuitySource]],['body','Fuselage','My small body carried my computers, batteries, cameras and radio.',[ingenuitySource]],['wheels','Landing legs','Four light landing legs helped me touch down gently after each flight.',[ingenuitySource]],['science','Navigation cameras','My navigation camera watched the ground so my computer could estimate where I was moving.',[ingenuitySource]],['radio','Solar panel and antenna','My solar panel charged my batteries, and my radio relayed information through Perseverance to Earth.',[ingenuitySource]]],
+  components: [['landscape','Mars landscape','Mars has a very thin atmosphere. My blades had to spin quickly to lift me there.',[ingenuitySource]],['body','Fuselage','My small body carried my computers, batteries, cameras and radio.',[ingenuitySource]],['wheels','Landing legs','Four light landing legs helped me touch down gently after each flight.',[ingenuitySource]],['science','Navigation cameras','My navigation camera watched the ground so my computer could estimate where I was moving.',[ingenuitySource]],['radio','Solar panel and antenna','My solar panel charged my batteries, and my radio relayed information through Perseverance to Earth.',[ingenuitySource]],['rotors','Rotor blades','Two pairs of rapidly spinning blades generated lift in the thin Martian atmosphere.',[ingenuitySource]]],
+  regions: [
+    { id: 'sky', componentId: 'landscape', label: 'Martian sky' }, { id: 'ground', componentId: 'landscape', label: 'Mars surface' },
+    { id: 'vehicle', componentId: 'body', label: 'Helicopter body' }, { id: 'wheel1', componentId: 'rotors', label: 'Upper rotor blades' },
+    { id: 'wheel2', componentId: 'rotors', label: 'Lower rotor blades' }, { id: 'wheel3', componentId: 'wheels', label: 'Front landing leg' },
+    { id: 'wheel4', componentId: 'wheels', label: 'Rear landing leg' }, { id: 'wheel5', componentId: 'wheels', label: 'Left landing leg' },
+    { id: 'wheel6', componentId: 'wheels', label: 'Right landing leg' }, { id: 'instrument', componentId: 'science', label: 'Navigation camera' },
+    { id: 'antenna', componentId: 'radio', label: 'Solar panel' },
+  ],
   quiz: [['What made Ingenuity historic?',['First powered, controlled flight on another planet','First rover on Mars','First spacecraft to orbit Earth'],0,'Ingenuity made the first powered, controlled flights on another planet.','It flew above the Martian ground.',ingenuitySource],['How many flights did Ingenuity complete?',['7','72','720'],1,'Ingenuity completed 72 flights before its mission ended.','It flew far beyond its original five-flight goal.',ingenuitySource],['How did Ingenuity get power?',['Solar panel and batteries','Gasoline engine','A long cable to Earth'],0,'Its solar panel charged batteries that powered the helicopter.','Look on top of the helicopter.',ingenuitySource]],
   colors: { sky:'#e9c99a', ground:'#d9482b', vehicle:'#f3f1ea', instrument:'#6d7585', antenna:'#3a3f4f' },
 })
@@ -82,6 +95,14 @@ export const lunarRover = makeLevel({
   intro: 'Welcome to the Moon! I am the Lunar Roving Vehicle. Astronauts unfolded me after landing, climbed aboard and drove to rocks and places too far to reach on foot.',
   completion: 'The lunar rover extended astronauts’ reach and helped them bring home more samples. The parked rovers remain on the Moon as reminders of those field trips.',
   components: [['landscape','Lunar surface','I drove over dusty lunar ground, carrying astronauts and tools to interesting rocks and craters.',[apollo]],['body','Chassis and seats','My lightweight frame carried two suited astronauts, tools and collected lunar samples.',[apollo]],['wheels','Four wire-mesh wheels','Four flexible wire-mesh wheels with metal treads gripped the Moon’s rough surface in low gravity.',[apollo]],['science','Navigation and tools','A dashboard display helped astronauts track direction and distance while they collected samples and took photographs.',[apollo]],['radio','Antenna','My antenna sent television and voice signals from the astronauts back to Earth.',[apollo]]],
+  regions: [
+    { id: 'sky', componentId: 'landscape', label: 'Lunar sky' }, { id: 'ground', componentId: 'landscape', label: 'Moon dust' },
+    { id: 'vehicle', componentId: 'body', label: 'Rover chassis' }, { id: 'wheel1', componentId: 'wheels', label: 'Front left wheel' },
+    { id: 'wheel2', componentId: 'wheels', label: 'Front right wheel' }, { id: 'wheel3', componentId: 'wheels', label: 'Rear left wheel' },
+    { id: 'wheel4', componentId: 'wheels', label: 'Rear right wheel' }, { id: 'wheel5', componentId: 'body', label: 'Left astronaut seat' },
+    { id: 'wheel6', componentId: 'body', label: 'Right astronaut seat' }, { id: 'instrument', componentId: 'science', label: 'Navigation display' },
+    { id: 'antenna', componentId: 'radio', label: 'Communications antenna' },
+  ],
   quiz: [['What powered the Lunar Roving Vehicle?',['Batteries','Gasoline','A sail'],0,'The lunar rover ran on batteries and electric motors.','It had no exhaust pipe.',apollo],['Which Apollo missions used lunar rovers?',['Apollo 15, 16 and 17','Apollo 11 only','Every Apollo mission'],0,'Astronauts drove lunar rovers on Apollo 15, 16 and 17.','The first lunar rover arrived in 1971.',apollo],['Why use a rover on the Moon?',['To travel farther and collect more samples','To launch astronauts into orbit','To make oxygen'],0,'The rover let astronauts explore farther from their lander and bring back more samples.','It was an electric car for lunar field trips.',apollo]],
   colors: { sky:'#f3f1ea', ground:'#b7bfcc', vehicle:'#ffd23f', instrument:'#6d7585', antenna:'#b7bfcc' },
 })

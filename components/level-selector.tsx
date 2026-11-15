@@ -138,7 +138,7 @@ export function LevelSelector() {
       <div className="flex flex-col gap-2 text-center">
         <h1 className="text-5xl font-bold text-balance md:text-6xl">Choose your explorer</h1>
         <p className="text-lg leading-relaxed text-muted-foreground">
-          Finish a level and pass its quiz to unlock the next rover.
+          Finish a level and pass its quiz to unlock the next explorer.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2">

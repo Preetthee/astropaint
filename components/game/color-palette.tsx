@@ -51,7 +51,7 @@ export function ColorPalette({
                 <Star className="absolute -top-1.5 -right-1.5 size-6 fill-paper text-accent-foreground" />
               </span>
               <span className="flex min-w-0 flex-col">
-                <span className="text-xs font-bold uppercase opacity-90">Real rover color</span>
+                <span className="text-xs font-bold uppercase opacity-90">Suggested color</span>
                 <span className="text-xl leading-tight font-bold capitalize" style={{ fontFamily: 'var(--font-heading)' }}>
                   {suggestedName}
                 </span>
@@ -72,7 +72,7 @@ export function ColorPalette({
         >
           <Hand className="size-8 shrink-0 animate-bounce text-accent" aria-hidden="true" />
           <p className="text-base leading-snug font-bold">
-            First, tap a part of the rover. Then pick a color!
+            First, tap a part of the picture. Then pick a color!
           </p>
         </div>
       )}
@@ -109,7 +109,7 @@ export function ColorPalette({
               )}
               <span className="sr-only">
                 {p.name}
-                {recommended ? ' (real rover color)' : ''}
+                {recommended ? ' (suggested color)' : ''}
                 {current ? ' (current color)' : ''}
               </span>
             </button>

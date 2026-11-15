@@ -12,11 +12,11 @@ export const TUTORIAL_ORDER: TutorialStep[] = ['select', 'paint', 'listen', 'und
 export const TUTORIAL_TEXT: Record<TutorialStep, { title: string; text: string; next?: string }> = {
   select: {
     title: 'Tap a part of me',
-    text: 'Let me show you how to play! First, tap any part of my picture. Try my wheels!',
+    text: 'Let me show you how to play! First, tap any part of my picture. Try my parts!',
   },
   paint: {
     title: 'Now pick a color',
-    text: 'Great! Now tap a color. The glowing one with the star is my real color, but you can choose any color you like!',
+    text: 'Great! Now tap a color. The star suggests one to try, but you can choose any color you like!',
   },
   listen: {
     title: 'Hear me again',
