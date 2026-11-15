@@ -1,8 +1,9 @@
 import { curiosity } from './curiosity'
 import { perseverance } from './perseverance'
+import { ingenuity, opportunity, sojourner, lunarRover } from './legacy-levels'
 import type { LevelData } from './types'
 
-export const LEVELS: LevelData[] = [perseverance, curiosity].sort((a, b) => a.order - b.order)
+export const LEVELS: LevelData[] = [perseverance, curiosity, ingenuity, opportunity, sojourner, lunarRover].sort((a, b) => a.order - b.order)
 
 export const getLevel = (id: string) => LEVELS.find((l) => l.id === id)
 
